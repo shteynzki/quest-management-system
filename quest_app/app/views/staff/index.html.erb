@@ -1,0 +1,128 @@
+<h2 style="margin-top: 40px;">Таблица мотивации</h2>
+<table border="1" cellpadding="10" style="width: 100%; border-collapse: collapse; background: white;">
+  <thead>
+    <tr style="background: #f1f3f5;">
+      <th>Категория</th>
+      <% @actors.each do |actor| %>
+        <th><%= actor.name %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% # Плюсы %>
+    <tr style="background: #d4edda;"><td colspan="<%= @actors.count + 1 %>"><strong>Плюсы</strong></td></tr>
+    <% ['photo', 'upsell', 'review_aggr', 'review_yandex', 'like'].each do |cat| %>
+      <tr>
+        <td><%= cat %></td>
+        <% @actors.each do |actor| %>
+          <td><%= actor.actor_transactions.where(category: cat, transaction_type: 'plus').sum(:amount) %></td>
+        <% end %>
+      </tr>
+    <% end %>
+
+    <% # Минусы %>
+    <tr style="background: #f8d7da;"><td colspan="<%= @actors.count + 1 %>"><strong>Минусы</strong></td></tr>
+    <% ['dirty', 'no_report', 'late_15', 'dislike'].each do |cat| %>
+      <tr>
+        <td><%= cat %></td>
+        <% @actors.each do |actor| %>
+          <td style="color: red;"><%= actor.actor_transactions.where(category: cat, transaction_type: 'minus').sum(:amount) %></td>
+        <% end %>
+      </tr>
+    <% end %>
+
+    <tr style="background: #eee; font-weight: bold;">
+      <td>ИТОГО</td>
+      <% @actors.each do |actor| %>
+        <td>
+          <% total = actor.actor_transactions.sum(:amount) %>
+          <span style="color: <%= total >= 0 ? 'green' : 'red' %>;"><%= total %> руб.</span>
+        </td>
+      <% end %>
+    </tr>
+  </tbody>
+</table>
+
+<% if current_user.admin? %>
+  <div style="margin-top: 20px; padding: 15px; border: 1px dashed #ccc;">
+    <h3>Добавить плюс/минус вручную</h3>
+    <%= form_with model: ActorTransaction.new do |f| %>
+      <%= f.collection_select :user_id, @actors, :id, :name %>
+      <%= f.select :transaction_type, [['Плюс', 'plus'], ['Минус', 'minus']] %>
+      <%= f.select :category, [['Грязно', 'dirty'], ['Опоздание', 'late_15'], ['Ремонт', 'repair'], ['Лайк', 'like'], ['Дизлайк', 'dislike']] %>
+      <%= f.number_field :amount, placeholder: "Сумма (если нет в тарифах)" %>
+      <%= f.submit "Добавить" %>
+    <% end %>
+  </div>
+<% end %>
+<h1>Управление персоналом</h1>
+
+<div style="margin-bottom: 20px;">
+  <%= link_to "← Вернуться в Личный кабинет", dashboard_path, style: "text-decoration: none; color: #0056b3;" %>
+</div>
+
+<div style="background: #f9f9f9; padding: 15px; margin-bottom: 30px; border: 1px solid #ccc; overflow-x: auto;">
+  <h3 style="margin-top: 0;">Сводное расписание по квестам</h3>
+  <table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse; text-align: center; background: white;">
+    <tr style="background-color: #e9ecef;">
+      <th>Квест</th>
+      <th>Пн</th>
+      <th>Вт</th>
+      <th>Ср</th>
+      <th>Чт</th>
+      <th>Пт</th>
+      <th>Сб</th>
+      <th>Вс</th>
+    </tr>
+    
+    <% ordered_days = [1, 2, 3, 4, 5, 6, 0]  %>
+    
+    <% [1, 2].each do |quest_id| %>
+      <tr>
+        <td style="background-color: #f1f3f5;"><strong>Квест <%= quest_id %></strong></td>
+        <% ordered_days.each do |day_num| %>
+          <% # Ищем актеров для этого квеста в этот день недели %>
+          <% shift_actors = ActorSchedule.where(quest_id: quest_id, day_of_week: day_num).map { |s| s.user.name } %>
+          
+          <td>
+            <% if shift_actors.any? %>
+              <span style="color: purple; font-weight: bold;"><%= shift_actors.join(", ") %></span>
+            <% else %>
+              <span style="color: #ccc;">-</span>
+            <% end %>
+          </td>
+        <% end %>
+      </tr>
+    <% end %>
+  </table>
+</div>
+
+<h3 style="margin-top: 0;">Персональные графики актеров</h3>
+<div style="display: flex; flex-wrap: wrap; gap: 20px;">
+  
+  <% full_day_names = {1=>"Понедельник", 2=>"Вторник", 3=>"Среда", 4=>"Четверг", 5=>"Пятница", 6=>"Суббота", 0=>"Воскресенье"} %>
+
+  <% if @actors.any? %>
+    <% @actors.each do |actor| %>
+      <div style="background: #f9f9f9; border: 1px solid #ccc; border-radius: 8px; padding: 15px; width: 300px;">
+        <h3 style="margin-top: 0; color: purple; margin-bottom: 5px;"><%= actor.name %> <%= actor.last_name %></h3>
+        <p style="margin: 0 0 15px 0; font-size: 14px; color: #666;">ID сотрудника: <%= actor.id %></p>
+        
+        <hr>
+        
+        <h4 style="margin-bottom: 10px;">График на неделю:</h4>
+        <ul style="margin: 0; padding-left: 20px; font-size: 14px;">
+          <% ordered_days.each do |day_num| %>
+            <% schedules = actor.actor_schedules.where(day_of_week: day_num) %>
+            <% if schedules.any? %>
+              <li><strong><%= full_day_names[day_num] %>:</strong> Квест <%= schedules.pluck(:quest_id).join(", ") %></li>
+            <% end %>
+          <% end %>
+        </ul>
+        
+      </div>
+    <% end %>
+  <% else %>
+    <p>В системе пока нет актеров.</p>
+  <% end %>
+</div>

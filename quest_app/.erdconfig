@@ -1,0 +1,12 @@
+attributes:
+  - content
+  - foreign_key
+  - inheritance
+
+exclude:
+  - "SolidQueue::*"
+  - "SolidCache::*"
+  - "SolidCable::*"
+  - "ActionText::*"
+  - "ActionMailbox::*"
+  - "ActiveStorage::*"

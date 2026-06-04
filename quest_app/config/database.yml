@@ -1,0 +1,37 @@
+
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: localhost
+  username: postgres
+  password: Kolobok1*
+
+
+development:
+  <<: *default
+  database: quest_app_development
+
+  test:
+  <<: *default
+  database: quest_app_test
+
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: quest_app_production
+    username: quest_app
+    password: <%= ENV["quest_app_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: quest_app_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: quest_app_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: quest_app_production_cable
+    migrations_paths: db/cable_migrate

@@ -1,0 +1,40 @@
+<h1 style="text-align: center;">Финансовый отчет за <%= @month.strftime("%B %Y") %></h1>
+
+<table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+  <thead>
+    <tr style="background-color: #f2f2f2;">
+      <th>Дата</th>
+      <th>Квест</th>
+      <th>Актер</th>
+      <th>Игроков</th>
+      <th>Расчетная сумма</th>
+      <th>Фактическая сумма</th>
+      <th>Оплата</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% total_calc = 0 %>
+    <% total_act = 0 %>
+    
+    <% @reports.each do |report| %>
+      <% total_calc += report.calculated_amount.to_i %>
+      <% total_act += report.actual_amount.to_i %>
+      <tr>
+        <td><%= report.game.time.strftime("%d.%m.%Y %H:%M") %></td>
+        <td><%= report.game.quest.name %></td>
+        <td><%= report.actual_actor&.name || report.game.user.name %></td>
+        <td><%= report.players_count %></td>
+        <td><%= report.calculated_amount %></td>
+        <td><%= report.actual_amount %></td>
+        <td><%= report.payment_method %></td>
+      </tr>
+    <% end %>
+    
+    <tr style="font-weight: bold; background-color: #e9ecef;">
+      <td colspan="4" style="text-align: right;">ИТОГО:</td>
+      <td><%= total_calc %></td>
+      <td><%= total_act %></td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>

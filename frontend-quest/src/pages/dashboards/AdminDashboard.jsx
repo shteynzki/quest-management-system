@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../api';
+import api, { API_BASE_URL } from '../../api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
         <Link to="/schedule" className="bg-surface border border-gray-800 p-4 text-center hover:border-blood transition-all uppercase tracking-widest text-sm text-textPrimary hover:text-blood block">Расписание</Link>
         <Link to="/motivation" className="bg-surface border border-gray-800 p-4 text-center hover:border-wonderYellow transition-all uppercase tracking-widest text-sm text-textPrimary hover:text-wonderYellow block">Таблица мотивации</Link>
         <Link to="/staff" className="bg-surface border border-gray-800 p-4 text-center hover:border-wonderTeal transition-all uppercase tracking-widest text-sm text-textPrimary hover:text-wonderTeal block">Управление актерами</Link>
-        <a href="http://localhost:3000/api/staff/monthly_report.pdf" target="_blank" rel="noreferrer" className="bg-blood/10 border border-blood p-4 text-center hover:bg-blood hover:text-white transition-all uppercase tracking-widest text-sm text-blood block">Отчет за месяц</a>
+        <a href={`${API_BASE_URL}/staff/monthly_report.pdf`} target="_blank" rel="noreferrer" className="bg-blood/10 border border-blood p-4 text-center hover:bg-blood hover:text-white transition-all uppercase tracking-widest text-sm text-blood block">Отчет за месяц</a>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
